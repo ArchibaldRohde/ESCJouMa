@@ -20,7 +20,7 @@ from scipy.signal import butter, lfilter, freqz
 #################Read From Textfile##################
 
 raw_samples = []
-with open("ASK.txt") as fileobject:
+with open("16QAM.txt") as fileobject:
     l = 0
     for line in fileobject:
         reading = line[0: line.find(",")]
@@ -41,7 +41,9 @@ LPF_out_phase = np.zeros([30000], dtype=complex)
 LPF_out = np.zeros([30000], dtype=complex)
 
 for i in range(29999):
-    derivative_raw_samples[i] = (phase_raw_samples[i+1]-phase_raw_samples[i])
+    derivative_raw_samples[i] = (phase_raw_samples[i+1]-phase_raw_samples[i])####<-----------------------------------
+    #derivative_raw_samples[i] = 0.22
+
     temp = 0
     if i > 100:
         for j in range(40):
@@ -57,6 +59,7 @@ for i in range(29999):
 
 for k in range(len(integral)-1):
     integral[k+1] = integral[k+1] + integral[k]
+
 
 print(phase_raw_samples)
 print(derivative_raw_samples)
@@ -105,6 +108,20 @@ plt.title('Phase difference')
 plt.xlabel('samples')
 plt.ylabel('Phase difference')
 plt.grid(True)
+
+
+jas = np.exp(1j*phase_difference)
+plt.figure(10)
+#plt.subplot(223)
+plt.plot(np.real(jas), np.imag(jas), 'bo', label='phase diff')
+plt.legend()
+plt.yscale('linear')
+plt.title('Phase difference')
+plt.xlabel('samples')
+plt.ylabel('Phase difference')
+plt.grid(True)
+
+
 
 plt.figure(4)
 
