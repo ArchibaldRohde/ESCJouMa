@@ -82,35 +82,45 @@ for i in range(len(pll_out)-1):
 
 
 modulation_out = raw_samples * np.exp(-1j * pll_out)
-'''
-for i in range(22400):
-    modulation_out[i + 5999] = 0
-for i in range(1999):
-    modulation_out[i] = 0
-'''
-
 
 samplefreq = 2.4e6
-tsamplefreq = 1/samplefreq
+fsy = 98684
+fsymrate = 1.3e9 + fsy
 
-symrate = 102730 + 1.3e9
-tsymrate = 1/symrate
+t = np.arange(0, 30000/samplefreq, 1/samplefreq)
+clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5
 
-n = int(round(tsamplefreq/tsymrate)) #n is die amount of samples in
-symrateout = np.zeros([30000], dtype=complex)
-print(n)
+ons_sample_hier_ja = np.zeros([30000], dtype=complex)
 
-for i in range((round(len(modulation_out)/(n)))):
-    q = int(round(i * n))
-    if (q >= 30000):
-        break
+for i in range(len(ons_sample_hier_ja)):
+    if (clock[i] >= 0.985) and (ons_sample_hier_ja[i-1] == 0)and (ons_sample_hier_ja[i-2] == 0)and (ons_sample_hier_ja[i-3] == 0):
+        ons_sample_hier_ja[i] = modulation_out[i]
 
-    symrateout[q] = (modulation_out[q])
-    print(symrateout[i])
+plt.figure()
+#plt.subplot(221)
+plt.plot(modulation_out, label='Modulation')
+plt.plot(clock, label='clock')
+plt.plot(ons_sample_hier_ja, 'go', label='ons_sample_hier_ja')
+plt.legend()
+plt.yscale('linear')
+plt.title('phase_diff')
+plt.xlabel('time')
+plt.ylabel('Modulation')
+plt.grid(True)
 
+plt.figure()
+#plt.subplot(221)
+plt.plot(np.real(ons_sample_hier_ja), np.imag(ons_sample_hier_ja), 'bo', label='modulation_out IQ')
+plt.legend()
+plt.yscale('linear')
+plt.title('phase_diff')
+plt.xlabel('real')
+plt.ylabel('imag')
+plt.grid(True)
 
+'''
 #PLL phase
-plt.figure(1)
+plt.figure()
 #plt.subplot(221)
 plt.plot(new_phase_raw_samples, label='phase_raw_samples')
 #plt.plot(pll_out, label='PLL')
@@ -121,7 +131,7 @@ plt.xlabel('samples')
 plt.ylabel('Phase')
 plt.grid(True)
 
-plt.figure(2)
+plt.figure()
 #plt.subplot(221)
 plt.plot(modulation_out, label='modulation_out')
 plt.legend()
@@ -132,7 +142,7 @@ plt.ylabel('Phase')
 plt.grid(True)
 
 
-plt.figure(3)
+plt.figure()
 #plt.subplot(221)
 plt.plot(np.real(modulation_out), np.imag(modulation_out), 'bo', label='modulation_out IQ')
 plt.legend()
@@ -142,15 +152,7 @@ plt.xlabel('real')
 plt.ylabel('imag')
 plt.grid(True)
 
-plt.figure(4)
-#plt.subplot(221)
-plt.plot(np.real(symrateout), np.imag(symrateout), 'go', label=' kinda symbol & dodge pll IQ')
-plt.legend()
-plt.yscale('linear')
-plt.title('phase_diff')
-plt.xlabel('real')
-plt.ylabel('imag')
-plt.grid(True)
+
 
 
 
@@ -166,10 +168,10 @@ fmag2 = 20 * np.log(X/max(X))
 
 freqs = sc.fftpack.fftfreq(len(fmag1)) *f_s#/len(fmag)
 
-plt.figure(6)
+plt.figure()
 #plt.subplot(221)
 plt.plot(modulation_out,  label=' samples of sigal')
-plt.plot(symrateout, 'go', label=' symrate out samples')
+#plt.plot(symrateout, 'go', label=' symrate out samples')
 
 plt.legend()
 #plt.yscale('samplesize')
@@ -181,7 +183,7 @@ plt.grid(True)
 
 
 
-plt.figure(7)
+plt.figure()
 
 fig, ax = plt.subplots()
 #ax.yscale('linear')
@@ -193,5 +195,5 @@ ax.plot(freqs, fmag2, label='fourier transform')
 #plt.plot(freqs, fmag1, label='fourier transform')
 
 
-
+'''
 plt.show()
