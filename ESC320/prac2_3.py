@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter  # useful for `logit` scale
 from matplotlib.pyplot import *
 import pylab as py
-from rtlsdr import *
+#from rtlsdr import *
 import csv
 import cmath
-import plotly.graph_objects as go
-import pandas as pd
+#import plotly.graph_objects as go
+#import pandas as pd
 import scipy as sc#
 from scipy import signal
 from scipy.signal import butter, lfilter, freqz
@@ -84,11 +84,50 @@ for i in range(len(pll_out)-1):
 modulation_out = raw_samples * np.exp(-1j * pll_out)
 
 samplefreq = 2.4e6
-fsy = 98684
+'''
+######################################################################################################################Archie pasted this from down below
+f_s = 2.4e6
+
+Y = np.abs(raw_samples[1000:29000])
+X = np.abs(sc.fft(Y,300000))
+fmag1 = 10 * np.log(X/max(X))
+fmag2 = 20 * np.log(X/max(X))
+
+freqs = sc.fftpack.fftfreq(len(fmag1)) *f_s#/len(fmag)
+
+
+######################################################################################################################
+#fsy = (np.argmax(freqs[1000:400000])+1000)
+#print(fsy)
+'''
+fsy = 98684 #vir 16QAM
+#fsy = 93728 #vir ASK
+#fsy = 102732 #vir BPSK
+#fsy = 94929 #vir D8PSK
+#fsy = 102731 #vir DBPSK
+#fsy = 96144 #vir DQPSK
+#fsy = 96144 #vir MSK ###########################Hierdie een is weird
+#fsy = 99992 #vir OOK
+#fsy = 104160 #vir QAM
+
+
+
+
 fsymrate = 1.3e9 + fsy
 
 t = np.arange(0, 30000/samplefreq, 1/samplefreq)
-clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5
+clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5  #Vir 16QAM
+#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi-0.6) + .5 #vir ASK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+0.2) + .5 #vir BPSK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+0.2) + .5 #vir D8PSK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5 #vir DBPSK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+0.5) + .5 #vir DQPSK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+0.5) + .5 #vir MSK ################################Hierdie een is weird
+#clock = 0.5*np.cos(fsy*2*np.pi*t+0.4) + .5 #vir OOK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi-0.2) + .5 #vir QAM
+
+
+
 
 ons_sample_hier_ja = np.zeros([30000], dtype=complex)
 
@@ -152,22 +191,22 @@ plt.xlabel('real')
 plt.ylabel('imag')
 plt.grid(True)
 
-
+'''
 
 
 
 #plot(fourier)
 #plt.subplot(234)
 
-f_s = 2.4e6
+f_s = 2.4e6 ####################################################################################Archie copied this and put it higher up yass
 
 Y = np.abs(raw_samples[1000:29000])
 X = np.abs(sc.fft(Y,300000))
 fmag1 = 10 * np.log(X/max(X))
 fmag2 = 20 * np.log(X/max(X))
 
-freqs = sc.fftpack.fftfreq(len(fmag1)) *f_s#/len(fmag)
-
+freqs = sc.fftpack.fftfreq(len(fmag1)) *f_s#/len(fmag)##############################################
+'''
 plt.figure()
 #plt.subplot(221)
 plt.plot(modulation_out,  label=' samples of sigal')
@@ -180,7 +219,7 @@ plt.xlabel('time')
 plt.ylabel('amplitude')
 plt.grid(True)
 
-
+'''
 
 
 plt.figure()
@@ -195,5 +234,5 @@ ax.plot(freqs, fmag2, label='fourier transform')
 #plt.plot(freqs, fmag1, label='fourier transform')
 
 
-'''
+
 plt.show()
