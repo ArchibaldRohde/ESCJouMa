@@ -20,7 +20,7 @@ from scipy.signal import butter, lfilter, freqz
 #################Read From Textfile##################
 
 raw_samples = []
-with open("BPSK.txt") as fileobject:
+with open("D8PSK.txt") as fileobject:
     l = 0
     for line in fileobject:
         reading = line[0: line.find(",")]
@@ -86,8 +86,8 @@ freqs = sc.fftpack.fftfreq(len(fmag1)) *f_s#/len(fmag)
 '''
 #fsy = 98684 #vir 16QAM
 #fsy = 93728 #vir ASK
-fsy = 102732 #vir BPSK
-#fsy = 94929 #vir D8PSK
+#fsy = 102732 #vir BPSK
+fsy = 94929 #vir D8PSK
 #fsy = 102731 #vir DBPSK
 #fsy = 96144 #vir DQPSK
 #fsy = 96144 #vir MSK ###########################Hierdie een is weird
@@ -102,8 +102,8 @@ fsymrate = 1.3e9 + fsy
 t = np.arange(0, 30000/samplefreq, 1/samplefreq)
 #clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5  #Vir 16QAM
 #clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi-0.6) + .5 #vir ASK
-clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi*2/20) + .5 #vir BPSK
-#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+0.2) + .5 #vir D8PSK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi*2/20) + .5 #vir BPSK
+clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+0.2) + .5 #vir D8PSK
 #clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5 #vir DBPSK
 #clock = 0.5*np.cos(fsy*2*np.pi*t+0.5) + .5 #vir DQPSK
 #clock = 0.5*np.cos(fsy*2*np.pi*t+0.5) + .5 #vir MSK ################################Hierdie een is weird
@@ -138,18 +138,30 @@ diff = []#cari + phi
 
 diff.append(phase_ons_is_klaar_gesamples[0])
 for j in range(len(phase_ons_is_klaar_gesamples)-1):
-    if j < 100:
+    if j < 900:
+        if (m - abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j]) < 0.1):
+            m = abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
         diff.append(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
         phi.append(diff[j+1] - m)
-        if (m - abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j]) < 0.01):
-            m = abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
 
+phi[0] = 0
+phi[1] = 0
+phi[2] = 0
+phi[3] = 0
+phi[4] = 0
+phi[5] = 0#################################################################################################################Die eerste klompie samples is bogus
+phi[6] = 0
+phi[7] = 0
+phi[8] = 0
+phi[9] = 0
+phi[10] = 0
+phi[11] = 0
 
 #diff = diff + np.pi/4
 
 mod_out_hier_sample = []
 for i in range(len(no_zeros)):
-    if i < 100:
+    if i < 900:
         mod_out_hier_sample.append(abs(no_zeros[i])*np.exp(1j*phi[i]))
 
 freq_ons_is_klaar_gesamples = freq_ons_is_klaar_gesamples +0.75 #BPSK
