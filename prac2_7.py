@@ -20,7 +20,7 @@ from scipy.signal import butter, lfilter, freqz
 #################Read From Textfile##################
 
 raw_samples = []
-with open("D8PSK.txt") as fileobject:
+with open("DBPSK.txt") as fileobject:
     l = 0
     for line in fileobject:
         reading = line[0: line.find(",")]
@@ -86,9 +86,9 @@ freqs = sc.fftpack.fftfreq(len(fmag1)) *f_s#/len(fmag)
 '''
 #fsy = 98684 #vir 16QAM
 #fsy = 93728 #vir ASK
-fsy = 102732 #vir BPSK
-fsy = 94929 #vir D8PSK
-#fsy = 102731 #vir DBPSK
+#fsy = 102732 #vir BPSK
+#fsy = 94929 #vir D8PSK
+fsy = 102731 #vir DBPSK
 #fsy = 96144 #vir DQPSK
 #fsy = 96144 #vir MSK ###########################Hierdie een is weird
 #fsy = 99992 #vir OOK
@@ -102,9 +102,9 @@ fsymrate = 1.3e9 + fsy
 t = np.arange(0, 30000/samplefreq, 1/samplefreq)
 #clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5  #Vir 16QAM
 #clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi-0.6) + .5 #vir ASK
-clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi*2/20) + .5 #vir BPSK
-clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+0.2) + .5 #vir D8PSK
-#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5 #vir DBPSK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi*2/20) + .5 #vir BPSK
+#clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+0.2) + .5 #vir D8PSK
+clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+1.5) + .5 #vir DBPSK
 #clock = 0.5*np.cos(fsy*2*np.pi*t+0.5) + .5 #vir DQPSK
 #clock = 0.5*np.cos(fsy*2*np.pi*t+0.5) + .5 #vir MSK ################################Hierdie een is weird
 #clock = 0.5*np.cos(fsy*2*np.pi*t+0.4) + .5 #vir OOK
@@ -114,7 +114,7 @@ clock = 0.5*np.cos(fsy*2*np.pi*t+np.pi+0.2) + .5 #vir D8PSK
 
 no_zeros = []
 ons_sample_hier_ja = np.zeros([30000], dtype=complex)
-flaggie = 0
+flaggie = 0##################################################################Die issue is dalk hier
 for i in range(len(ons_sample_hier_ja)):
     if (clock[i] >= 0.985) and (ons_sample_hier_ja[i-1] == 0)and (ons_sample_hier_ja[i-2] == 0)and (ons_sample_hier_ja[i-3] == 0):
         ons_sample_hier_ja[i] = raw_samples[i]
@@ -140,10 +140,11 @@ diff.append(phase_ons_is_klaar_gesamples[0])
 for j in range(len(phase_ons_is_klaar_gesamples)-1):
     if j < 900:
         if (m - abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j]) < 0.0005):
-            m = abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
+            #m = abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
+            print(m)
         diff.append(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
         phi.append(diff[j+1] - m)
-print(phi[12])
+#print(phi[12])
 #phi[0] = 0
 #phi[1] = 0
 #phi[2] = 0
@@ -158,13 +159,19 @@ print(phi[12])
 #phi[11] = 0
 
 out = []
-
-for i in phi:
-    if (i<((-np.pi)/2)) or (i<(3*(-np.pi)/2)):
-            out.append(1)
+#b = 0
+for i in range(len(phase_ons_is_klaar_gesamples)-1):
+    #if (abs(phi[i+1]-phi[i]) > 1) and (b == 1):
+    #    out.append(0)
+    #elif (abs(phi[i+1]-phi[i]) > 1) and (b == 0):
+    #    out.append(1)
+    if (abs(phase_ons_is_klaar_gesamples[i+1]-phase_ons_is_klaar_gesamples[i]) > 2):
+        out.append('1')
     else:
-        out.append(0)
-print(out)
+        out.append('0')
+
+s = ''.join(out)
+print(s)
 
 
 '''
