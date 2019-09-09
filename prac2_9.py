@@ -140,7 +140,7 @@ diff.append(phase_ons_is_klaar_gesamples[0])
 for j in range(len(phase_ons_is_klaar_gesamples)-1):
     if j < 900:
         if (m - abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j]) < 0.0005):
-            #m = abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
+            m = abs(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
             print(m)
         diff.append(phase_ons_is_klaar_gesamples[j+1] - phase_ons_is_klaar_gesamples[j])
         phi.append(diff[j+1] - m)
@@ -160,12 +160,12 @@ for j in range(len(phase_ons_is_klaar_gesamples)-1):
 
 out = []
 #b = 0
-for i in range(len(phase_ons_is_klaar_gesamples)-1):
+for i in range(len(phi)):
     #if (abs(phi[i+1]-phi[i]) > 1) and (b == 1):
     #    out.append(0)
     #elif (abs(phi[i+1]-phi[i]) > 1) and (b == 0):
     #    out.append(1)
-    if (abs(phase_ons_is_klaar_gesamples[i+1]-phase_ons_is_klaar_gesamples[i]) > 2):
+    if (phi[i] > 2):
         out.append('1')
     else:
         out.append('0')
