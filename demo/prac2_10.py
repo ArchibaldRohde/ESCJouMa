@@ -193,11 +193,21 @@ for i in range(len(wrappedqdiff)):
 s = ''.join(out)
 jas = s[2:-3]
 print(jas)
-#for i in range(len(s)-jas):
-#    b = bytes((s[8*i+jas:8*i+8+jas]), 'utf-8')
-#    print(binascii.b2a_uu(b))  # out[2:-4]))
+bitstr = ''
+joke = ''
+desi = 0
+for i in range(80):
+    bitstr = jas[0:8]
+    print(bitstr)
+    desi = int(bitstr,2)
+    joke = joke + (chr(desi))
+    #print(joke)
+    jas = jas[8:]
 
+#b = bytes((s[8*i+jas:8*i+8+jas]), 'utf-8')
+#print(binascii.b2a_uu(b))  # out[2:-4]))
 
+print(joke)
 '''
 ############################################################################################output string for d8psk
 out = []
