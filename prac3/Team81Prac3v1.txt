@@ -1,0 +1,1077 @@
+;--- Device definition and header file ---
+    list        p=PIC18F45K22
+    #include	"p18f45K22.inc"
+
+;--- Config---
+    CONFIG  FOSC = INTIO67        
+    CONFIG  WDTEN = OFF 
+    CONFIG  LVP	= ON
+    ;--- DECLARE VARIABLES---
+    cblock  0x00
+	
+	DelayX
+	DelayY
+	DelayZ
+        Mode
+	Colour
+	RCD
+	Mode_letter ; <0;7> 0:M , 1:P, 2:C ,3: RCFLAG , 4: PRC mode RS232, 5:MSG RS232,6:R, <7>: Unused
+	Count
+	RESULTHI
+	delayx
+	delayy
+	C_Bits; 0: CAP init,2: Wait_adc terminator,  <2:7>: unused
+	tmp
+	sen1
+	sen2
+	sen3
+	sen4
+	sen5
+	sent
+	senc ; 0: Black,1:Red,2:Green,3:Blue,4:White <5:7>: unsused
+	Counter1
+	Counter2
+	Counter3
+	RC
+    endc
+    
+
+    
+    ORG	    0x00
+    GOTO    Start
+    ORG	    0x08    ;LOCATION OF ISR
+    GOTO    ISR
+    
+    
+;SET_TMP
+;    SUBLW	D'1'
+;    movwf	tmp
+;;;;;;;;;;;;;;;;;;;;DIRECTIONS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Straight
+BSF	PORTA,4
+movlw	'S'
+call	BYTE_TX
+CALL	Delay2
+BCF	PORTA,4 
+goto RCE_RCE2
+ 
+Left
+ 
+ BSF	PORTA,5
+ movlw	'L'
+ call	BYTE_TX
+ CALL	Delay2
+ BCF	PORTA,4
+ 
+ goto RCE_RCE2
+ 
+ 
+Right
+ 
+ BSF	PORTA,6
+ movlw	'R'
+ call	BYTE_TX
+ CALL	Delay2
+ BCF	PORTA,6
+ goto RCE_RCE2
+	
+crossing
+ 
+ BSF	PORTA,7
+ movlw	'C'
+ call	BYTE_TX
+ CALL	Delay2
+ BCF	PORTA,4
+ goto   RCE_RCE2
+ 
+lost
+ 
+    movlw	'L'
+    call	BYTE_TX
+    BSF	    PORTC,1
+    call    Delay2
+    BCF	    PORTC,1
+    
+    BSF	    PORTC,2
+    call    Delay2
+    BCF	    PORTC,2
+    
+    BSF	    PORTC,3
+    call    Delay2
+    BCF	    PORTC,3
+    
+    goto    RCE_RCE2
+    
+STOP
+    BSF	    PORTC,4
+    call    Delay2
+    BCF	    PORTC,4
+    
+   goto RCE  
+;;;;;;;;;;;;;;;;END_DIRECTIONS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
+;;;;;;;;;;;;;;;;;;;;;;;;;ADC;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+display_led
+   bcf	PORTC,1
+   bcf	PORTC,2
+   bcf	PORTC,3
+   call	    red
+   call	    green
+   call	    blue
+   return
+red
+   movlw    0x02
+   cpfseq sen3 ;RED
+   return
+   bsf	PORTC,1
+   return
+   
+green
+   movlw    0x04
+   cpfseq sen3 ;GREEN
+   return
+   bsf	PORTC,2
+   return
+   
+blue
+   movlw    0x08
+   cpfseq sen3 ;BLUE
+   return
+   bsf	PORTC,3
+   return
+   
+
+Read_sensor1	
+    bcf	    C_Bits,1
+    BCF	    ADCON0,2;1100
+    BCF	    ADCON0,3
+    BSF	    ADCON0,4
+    BSF	    ADCON0,5
+    clrf	senc
+	BSF	    ADCON0,GO 
+wait_adc1
+	movf    C_Bits,0
+	BTFSS  C_Bits,1
+	goto    wait_adc1
+	movf	senc,0
+	return
+	
+	
+Read_sensor2
+    bcf	    C_Bits,1
+    BCF	    ADCON0,2;1010
+    BSF	    ADCON0,3
+    BCF	    ADCON0,4
+    BSF	    ADCON0,5
+    clrf	senc
+    BSF 	ADCON0,GO 
+wait_adc2
+    movf    C_Bits,0
+    BTFSS  C_Bits,1
+    goto wait_adc2
+    movf    senc,0
+    movwf   sen2
+    return
+    
+    
+Read_sensor3
+    bcf	    C_Bits,1
+    BCF	    ADCON0,2;1000
+    BCF	    ADCON0,3
+    BCF	    ADCON0,4
+    BSF	    ADCON0,5
+    clrf	senc
+    BSF 	ADCON0,GO 
+wait_adc3
+    movf    C_Bits,0
+    BTFSS  C_Bits,1
+    goto wait_adc3
+    movf    senc,0
+    movwf   sen3
+    call	display_led
+    return
+    
+Read_sensor4
+    bcf	    C_Bits,1
+    BSF	    ADCON0,2;1001
+    BCF	    ADCON0,3
+    BCF	    ADCON0,4
+    BSF	    ADCON0,5
+    clrf	senc
+    BSF 	ADCON0,GO 
+wait_adc4
+   
+    movf    C_Bits,0
+    BTFSS  C_Bits,1
+    goto wait_adc4
+    movf    senc,0
+    movwf   sen4
+    return
+
+Read_sensor5
+    bcf	    C_Bits,1
+    BSF	    ADCON0,2;1101
+    BCF	    ADCON0,3
+    BSF	    ADCON0,4
+    BSF	    ADCON0,5
+    clrf	senc
+    BSF 	ADCON0,GO 
+wait_adc5
+    movf    C_Bits,0
+    BTFSS  C_Bits,1
+    goto wait_adc5
+    movf    senc,0
+    movwf   sen5
+    return
+;;;;;;;;;;;;;;;;;;;;;;;;;ADC_END;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;CHECK_COLOURS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
+check_black
+    movlw	D'20'
+    cpfsgt	sent
+    bsf		senc,0
+    
+    return
+
+check_red
+    movlw	D'20'
+    cpfsgt sent
+    return
+    
+    movlw	D'54'
+    cpfsgt	sent
+    bsf		senc,1
+
+    return
+    
+check_green
+    
+    movlw	D'54'
+    cpfsgt sent
+    return
+    
+    movlw	D'80'
+    cpfsgt	sent
+    bsf		senc,2
+    
+    return
+    
+check_blue
+    
+    movlw	D'80'
+    cpfsgt sent
+    return
+    
+    movlw	D'125'
+    cpfsgt	sent
+    bsf		senc,3
+    
+    return
+    
+check_white
+    
+    movlw	D'125'
+    cpfslt	sent
+    bsf		senc,4
+    
+    return
+    
+    
+    
+decide
+    call CR
+    call CG
+    call CB
+    return
+    
+    
+CR
+   movlw    'R'
+   cpfseq   Colour
+   return
+   movlw    0x02
+   movwf    RC
+    return
+CG
+   movlw    'G'
+   cpfseq   Colour
+   return
+   movlw    0x04
+   movwf    RC
+    return
+CB
+   movlw    'B'
+   cpfseq  Colour
+   return
+   movlw   0x08
+   movwf    RC
+   movf	    RC,0
+   return
+   
+   
+CW2
+  movlw    0x0A
+  cpfseq   sen2
+  return
+  BSF	tmp,2
+  return
+CW3
+  movlw    0x0A
+  cpfseq   sen3
+  return
+  BSF	tmp,1
+  return
+   
+CW4
+  movlw    0x0A
+  cpfseq   sen4
+  return
+  BSF	tmp,3
+  return
+;;;;;;;;;;;;;;;;;;;;;;;;END_CHECK_COLOURS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    
+    
+    
+;;;;;;;;;;;;;;;;;;;;DELAYS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
+Delay ;------------------------------------------------Delay 0.6s
+    movlw   0x04			;A DELAY OF 0.6 SECONDS
+    movwf   DelayZ			;5X TIMES = A DELAY OF 3 SECONDS
+LoopZ					;FOR THE CALIBRATE
+    movlw   0xF8
+    movwf   DelayY
+LoopY
+    movlw   0xC8
+    movwf   DelayX
+LoopX
+    decfsz  DelayX,f
+    goto    LoopX
+    decfsz  DelayY,f
+    goto    LoopY
+    decfsz  DelayZ,f
+    goto    LoopZ
+    return
+    
+    
+Delay1
+    
+    movlw   0xFF
+    movwf   delayy
+loopy
+    movlw   0x05
+    movwf   delayx
+loopx
+    decfsz   delayx,f
+    goto    loopx
+    decfsz  delayy,f
+    goto    loopy
+    return
+    
+    
+Delay2
+    MOVLW 0X73
+    MOVWF Counter1
+    MOVLW 0Xb1
+    MOVWF Counter2
+    MOVLW 0X02
+    MOVWF Counter3
+LOOP2
+    DECFSZ Counter1, 1
+    GOTO LOOP2	
+    DECFSZ Counter2, 1
+    GOTO LOOP2
+    DECFSZ Counter3, 1
+    GOTO LOOP2
+    RETURN
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;END_DELAY;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;RS232_TX;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   
+BYTE_TX
+    movwf   TXREG
+POLL_TX
+    btfss   TXSTA,TRMT
+    GOTO    POLL_TX
+    RETURN
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;END RS232_TX;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;STATE_CHECKS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Check_M
+	;01001101
+	BTFSC RCD,7
+	return
+	BTFSS RCD,6
+	return
+	BTFSC RCD,5
+	return
+	BTFSC RCD,4
+	return
+	BTFSS RCD,3
+	return
+	BTFSS RCD,2
+	return
+	BTFSC RCD,1
+	return
+	BTFSC RCD,0 ; reverse logic for ease of use
+	BSF Mode_letter,0
+	
+	return
+	
+Check_P
+	;01010000
+	BTFSC RCD,7
+	return
+	BTFSS RCD,6
+	return
+	BTFSC RCD,5
+	return
+	BTFSS RCD,4
+	return
+	BTFSC RCD,3
+	return
+	BTFSC RCD,2
+	return
+	BTFSC RCD,1
+	return
+	BTFSS RCD,0 ; reverse logic for ease of use
+	BSF Mode_letter,1
+	
+	return
+	
+Check_C
+	;01000011
+	BTFSC RCD,7
+	return
+	BTFSS RCD,6
+	return
+	BTFSC RCD,5
+	return
+	BTFSC RCD,4
+	return
+	BTFSC RCD,3
+	return
+	BTFSC RCD,2
+	return
+	BTFSS RCD,1
+	return
+	BTFSC RCD,0 ; reverse logic for ease of use
+	BSF Mode_letter,2
+	
+	return
+	
+Check_R
+	;01010010
+	BTFSC RCD,7
+	return
+	BTFSS RCD,6
+	return
+	BTFSC RCD,5
+	return
+	BTFSS RCD,4
+	return
+	BTFSC RCD,3
+	return
+	BTFSC RCD,2
+	return
+	BTFSS RCD,1
+	return
+	BTFSS RCD,0 ; reverse logic for ease of use
+	BSF Mode_letter,6
+	
+	return
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;END_STATE_CHECKS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;MESSAGES;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+TRANSMIT_WSMR
+    movlw   'W'
+    CALL BYTE_TX    
+    movlw   'h'
+    CALL BYTE_TX    
+    movlw   'a'
+    CALL BYTE_TX    
+    movlw   't'
+    CALL BYTE_TX    
+    movlw   ' '
+    CALL BYTE_TX    
+    movlw   'S'
+    CALL BYTE_TX    
+    movlw   'h'
+    CALL BYTE_TX    
+    movlw   'a'
+    CALL BYTE_TX
+    movlw   'l'
+    CALL BYTE_TX
+    movlw   'l'
+    CALL BYTE_TX
+    movlw   ' '
+    CALL BYTE_TX
+    movlw   'M'
+    CALL BYTE_TX
+    movlw   'a'
+    CALL BYTE_TX
+    movlw   'r'
+    CALL BYTE_TX
+    movlw   'v'
+    CALL BYTE_TX
+    movlw   ' '
+    CALL BYTE_TX
+    movlw   'R'
+    CALL BYTE_TX
+    movlw   'a'
+    CALL BYTE_TX
+    movlw   'c'
+    CALL BYTE_TX
+    movlw   'e'
+    CALL BYTE_TX
+    movlw   '?'
+    CALL BYTE_TX
+    
+    movlw   0x0D    ;Transmit Enter
+    CALL BYTE_TX
+    
+    RETURN
+    
+    
+TRANSMIT_MRX
+    movlw   'M'
+    CALL    BYTE_TX
+    movlw   'a'
+    CALL    BYTE_TX
+    movlw   'r'
+    CALL    BYTE_TX
+    movlw   'v'
+    CALL    BYTE_TX
+    movlw   ' '
+    CALL    BYTE_TX
+    movlw   'R'
+    CALL    BYTE_TX
+    movlw   'a'
+    CALL    BYTE_TX
+    movlw   'c'
+    CALL    BYTE_TX
+    movlw   'e'
+    CALL    BYTE_TX
+    movlw   's'
+    CALL    BYTE_TX
+    movlw   ' '
+    CALL    BYTE_TX
+    
+    movf    Colour,w
+    CALL    BYTE_TX
+    
+    movlw   0x0D    ;Transmit Enter
+    CALL BYTE_TX   
+
+    return
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;END_MESSAGES;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;ISRS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ISR
+    bcf	    INTCON,GIE
+    bsf	    Mode_letter,3
+    BTFSC   PIR1,ADIF
+    goto    ADCINT
+    BTFSC   Mode_letter,4
+    goto IPRC
+   
+    call Delay
+    movf    RCREG1,0
+    movwf   RCD
+    movf    RCD,0
+    call    Check_M
+    call    Check_P
+    call    Check_C
+    call    Check_R
+    BTFSC   Mode_letter,6
+    BCF	    Mode_letter,2
+    bcf	    INTCON,GIE
+    RETFIE
+    
+IPRC
+    movf    RCREG1,0
+    movwf   Colour
+    bsf	    INTCON,GIE
+    RETFIE
+
+    
+ADCINT
+    
+     
+    movlw   'I'
+    call    BYTE_TX
+    MOVF    ADRESH,W
+    movwf   sent
+    clrf	senc
+    call	check_black
+    call	check_red	
+    call	check_green
+    call	check_blue
+    call	check_white
+    bsf	    C_Bits,1
+    movf    C_Bits,0
+    bcf	    PIR1,ADIF
+    bsf	    INTCON,GIE
+    
+    RETFIE
+
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;END_ISRS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 
+Start
+    clrf    sen1
+    clrf    sen2
+    clrf    sen3
+    clrf    sen4
+    clrf    sen5
+    clrf    C_Bits
+    clrf    DelayX
+    clrf    DelayY
+    clrf    DelayZ
+    clrf    Mode
+    clrf    Mode_letter
+    clrf    Count
+    clrf    RCD
+    
+    
+    ; Set up oscillator
+    BSF	OSCCON,IRCF0
+    BCF	OSCCON,IRCF1
+    BSF	OSCCON,IRCF2
+    MOVLB   0XF
+    
+     ; Serial port setup
+    CLRF    TXSTA1
+    CLRF    RCSTA1
+    clrf    TXREG1
+    CLRF    RCREG1
+    
+    MOVLW   d'12'	  	; 19200 BAUD @ 4 MHz
+		  		; table 18-5 of datasheet
+    MOVWF   SPBRG1	  	; load baudrate register
+    CLRF    SPBRGH1
+    BSF     TXSTA1,TXEN		; Enable transmit
+    BSF     TXSTA1,BRGH   	; Enable low BAUDrate
+    BCF	    BAUDCON1,BRG16	; Use 8 bit baud generator in this example (instead of 16 bit)
+  
+    BSF	    BAUDCON1,DTRXP
+    BSF	    BAUDCON1,CKTXP
+    
+     CLRF    PORTC
+    CLRF    LATC
+    CLRF    ANSELC
+    MOVLW   B'11000000'
+    MOVWF   TRISC
+    
+    
+   
+    
+    ; Enable asynchronous serial port
+    BCF     TXSTA1,SYNC		; Enable asynchronous transmission
+    BSF	    RCSTA1,SPEN		; Enable Serial Port (Datasheet RX#3)
+    BSF	    RCSTA1,CREN
+    
+    ; set up interrupts
+    clrf 	INTCON		; clear all interrupt bits
+    BCF    PIR1,RC1IF    ; Clear RCIF Interrupt Flag
+    BSF    PIE1,RC1IE    ; Set RCIE Interrupt Enable (Datasheet RX#4)
+    BSF    INTCON,PEIE  ; Enable peripheral interrupts
+    BSF    INTCON,GIE   ; Enable global interrupts
+        
+    BSF 	INTCON,RBIE 	; enable RB change interrupt
+    
+    
+    ;clrf    TRISA
+    ;clrf    PORTA
+    CLRF    TRISD
+    CLRF    PORTD
+    CLRF    TRISE
+    CLRF    PORTE
+      
+main
+   call	    Delay ;Wait for ports to stablize
+   call	    Delay
+   call	    Delay
+   movlw   'B'
+   movwf    Colour 
+   movlw    0x08
+   movwf    RC
+;;;;;;;;;;;;;;;;;;;CAP_START;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ; ========== Setup ADC ==========
+    
+        clrf	ADRESH
+        clrf	RESULTHI
+        MOVLW 	B'00101111' 	;left justify, Frc,
+        MOVWF 	ADCON2 			; & 12 TAD ACQ time
+        MOVLW 	B'00000000' 	;ADC ref = Vdd,Vss
+        MOVWF 	ADCON1 			;
+        BSF 	TRISA,0 		;Set RA0 to input
+        BSF 	ANSELA,0 		;Set RA0 to analog
+        BSF	ADCON0,ADON		;Enable AN0 of ADC			;
+
+Poll	;=== Poll for conversion ===
+	BCF	TRISA,0			;RA0 OUTPUT
+	BCF	TRISA,1			;RA1 OUT
+	BSF	PORTA,1			;RA1 HIGH
+	BSF	PORTA,0			;RA0 HIGH
+	BSF	ADCON0,2		;SELECT SECONDARY CHANNEL		
+	CALL	Delay1
+	BCF	PORTA,0			;ra0 LOW
+	CALL	Delay1
+	
+	BSF 	TRISA,0 		;Set RA0 to input
+	BCF	ADCON0,2		;sELECT SENSOR CHANNEL
+	
+	BSF 	ADCON0,GO 		; Start conversion
+	BTFSC 	ADCON0,GO 		; Is conversion done?
+	BRA 	$-2 			; No, test again
+		                        ; Note the $-2: $-1 gives a linker error because the
+			                ; address is not word-aligned
+
+Display	;=== Read & display result ===
+	MOVF 	ADRESH,W 		; Read upper 8 bits only, i.e. in this example we 
+	 				; throw away the lower two bits and use in effect 
+					; an 8 bit conversion
+					; ADRESH stands for AD RESult High
+	MOVWF 	RESULTHI 		; store in GPR space
+	call	BYTE_TX
+	BTFSS	C_Bits,0
+	movwf	tmp
+	bsf	C_Bits,0
+	
+
+		
+	
+	MOVF	    tmp,0
+	CPFSLT	    RESULTHI  
+	goto	    Poll
+	goto RCE
+;;;;;;;;;;;;;;;CAP_START_END;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   
+MSG
+   movlw   0xC0
+   movwf   PORTD
+    
+   BCF	    Mode_letter,4
+   BCF	    Mode_letter,3
+   BSF	    Mode_letter,5
+   
+   movlw   0x0D    ;Transmit Enter
+   CALL BYTE_TX 
+   movlw    'M'
+   call	    BYTE_TX
+   movlw    'S'
+   call	    BYTE_TX
+   movlw    'G'
+   call	    BYTE_TX
+   movlw   0x0D    ;Transmit Enter
+   CALL BYTE_TX 
+   
+    
+  
+   return
+PRC
+   movlw   0xF9
+   movwf   PORTD
+   BSF	    Mode_letter,4
+   BCF	    Mode_letter,3
+   
+   movlw   0x0D    ;Transmit Enter
+   CALL BYTE_TX 
+   movlw    'P'
+   call	    BYTE_TX
+   movlw    'R'
+   call	    BYTE_TX
+   movlw    'C'
+   call	    BYTE_TX
+   movlw    0x0D    ;Transmit Enter
+   CALL	    BYTE_TX 
+   
+   call	    TRANSMIT_WSMR
+ 
+Wait_input
+   BTFSS  Mode_letter,3
+   goto   Wait_input
+   
+
+    call decide
+   movf	    RC,0
+   call	    BYTE_TX
+   
+   movlw    0x0D    ;Transmit Enter
+   call     BYTE_TX 
+
+   
+   return
+CAL
+   movlw    0x0D    ;Transmit Enter
+   call     BYTE_TX 
+   movlw    'C'
+   call	    BYTE_TX
+   movlw    'A'
+   call	    BYTE_TX
+   movlw    'L'
+   call	    BYTE_TX
+   movlw    0x0D    ;Transmit Enter
+   call     BYTE_TX 
+;;;;;;;;;;;;;;;;SSD_TIME;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    movlw   0xC8;White
+    movwf   PORTD
+    movlw   D'51'
+    CALL    BYTE_TX
+    movlw   D'46'
+    CALL    BYTE_TX
+    movlw   D'49'
+    CALL    BYTE_TX
+    movlw   D'86'
+    CALL    BYTE_TX
+    movlw    0x0D    ;Transmit Enter
+    CALL	    BYTE_TX
+    call    Delay
+   
+   movlw   0x83;;;;;;;;;;BLUE
+    movwf   PORTD
+    movlw   D'50'
+    CALL    BYTE_TX
+    movlw   D'46'
+    CALL    BYTE_TX
+    movlw   D'48'
+    CALL    BYTE_TX
+    movlw   D'86'
+    CALL    BYTE_TX
+    movlw    0x0D    ;Transmit Enter
+    CALL	    BYTE_TX 
+    call    Delay
+    
+    movlw   0x90;;Green
+    movwf   PORTD
+    movlw   D'49'
+    CALL    BYTE_TX
+    movlw   D'46'
+    CALL    BYTE_TX
+    movlw   D'50'
+    CALL    BYTE_TX
+    movlw   D'86'
+    CALL    BYTE_TX
+    movlw    0x0D    ;Transmit Enter
+    CALL	    BYTE_TX
+    call    Delay
+    
+    movlw   0xAF;Red
+    movwf   PORTD
+    movlw   D'48'
+    CALL    BYTE_TX
+    movlw   D'46'
+    CALL    BYTE_TX
+    movlw   D'57'
+    CALL    BYTE_TX
+    movlw   D'86'
+    CALL    BYTE_TX
+    movlw    0x0D    ;Transmit Enter
+    CALL	    BYTE_TX 
+    call    Delay
+     
+    movlw   0xC1;Black
+    movwf   PORTD
+    movlw   D'48'
+    CALL    BYTE_TX
+    movlw   D'46'
+    CALL    BYTE_TX
+    movlw   D'51'
+    CALL    BYTE_TX
+    movlw   D'86'
+    CALL    BYTE_TX
+    movlw    0x0D    ;Transmit Enter
+    CALL	    BYTE_TX
+    call    Delay
+    
+   
+    
+    movlw   0x7F
+    movwf   PORTD
+    
+    
+;;;;;;;;;;;;;;;;SSD_END;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   BCF	    Mode_letter,4
+   BCF	    Mode_letter,3
+   
+   
+   return 
+RCE
+    movlw   0xA4
+    movwf   PORTD
+    ;Interupts
+    BSF	    INTCON,GIE		;enalbe global interrupts
+    BSF	    PIE1,ADIE		;Enable ADC interrrupt
+    BCF	    PIR1,ADIF		;Clear ADC Interrupt flag
+    CLRF    TRISA
+    CLRF    PORTA
+;;;;;;;;;;;;ADC_PORTS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	clrf	ADRESH
+        clrf	RESULTHI
+        MOVLW 	B'00101111' 	;left justify, Frc,
+        MOVWF 	ADCON2 			; & 12 TAD ACQ time
+        MOVLW 	B'00000000' 	;ADC ref = Vdd,Vss
+        MOVWF 	ADCON1 			;
+	;SETF	TRISA
+	;SETF	ANSELA
+	SETF 	TRISB	 		;Set RA0 to input
+        SETF 	ANSELB	 		;Set RA0 to analog
+        BSF	ADCON0,ADON		;Enable AN0 of ADC	
+;;;;;;;;END_ADC_PORTS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
+    call     TRANSMIT_MRX
+    
+    clrf    RCD
+    clrf    Mode_letter
+RCE_CONT   
+;;;;;;;;;;;;;;;;;;;;;;Recieve 3 letters;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   
+    BTFSS  Mode_letter,3
+    goto    RCE_CONT
+    bcf	    Mode_letter,3
+;;;;;;;;;;;;;;;;;;;;;End Recieve;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
+    BTFSC    RCSTA1,OERR
+    BCF	    RCSTA1,CREN
+    BSF	    RCSTA1,CREN
+    BTFSC   Mode_letter,0
+    call    MSG
+    BTFSC   Mode_letter,1
+    call    PRC
+    BTFSC   Mode_letter,2
+    call    CAL
+    BTFSC   Mode_letter,6
+    call    RCE_RCE
+   
+    goto RCE
+    
+RCE_RCE
+    movlw   0xA4
+    movwf   PORTD
+    movlw    0x0D    ;Transmit Enter
+   call     BYTE_TX 
+   movlw    'R'
+   call	    BYTE_TX
+   movlw    'C'
+   call	    BYTE_TX
+   movlw    'E'
+   call	    BYTE_TX
+   movlw    0x0D    ;Transmit Enter
+   call     BYTE_TX
+RCE_RCE2
+   movlw	0x00
+	call	Read_sensor1
+	movlw	0x00
+	
+	call	Read_sensor2
+	movlw	0x00
+	
+	call	Read_sensor3
+	movlw	0x00
+	
+	call	Read_sensor4
+	movlw	0x00
+	
+	call	Read_sensor5
+	
+	
+	movf	sen1,0
+	call	BYTE_TX
+	
+	movf	sen2,0
+	call	BYTE_TX
+	
+	movf	sen3,0
+	call	BYTE_TX
+	
+	movf	sen4,0
+	call	BYTE_TX
+	
+	movf	sen5,0
+	call	BYTE_TX
+	
+	movlw   0x0D    ;Transmit Enter
+	CALL BYTE_TX
+	
+	call Delay 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;NAV;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	clrf	tmp
+	movlw	0x10
+	;cpfseq	sen1
+	;goto not_STOP
+	cpfseq	sen2
+	goto not_STOP
+	cpfseq	sen3
+	goto not_STOP
+	cpfseq	sen4
+	goto not_STOP
+	cpfseq	sen4
+	BSF	tmp,1
+	BTFSS	tmp,1
+	goto STOP
+	
+not_STOP
+	clrf	tmp
+	movf	RC,0
+	cpfseq	sen1
+	bsf	tmp,1
+	BTFSS tmp,1
+	
+	goto	not_lost
+	
+	cpfseq	sen2
+	bsf	tmp,2
+	BTFSS tmp,2
+	goto	not_lost
+	
+	cpfseq	sen3
+	bsf	tmp,3
+	BTFSS tmp,3
+	goto	not_lost
+	
+	cpfseq	sen4
+	bsf	tmp,4
+	BTFSS tmp,4
+	goto	not_lost
+	
+	cpfseq	sen5
+	bsf	tmp,5
+	BTFSS tmp,5
+	goto	not_lost
+	
+	call lost
+	
+	
+	
+not_lost
+	clrf	tmp
+	movf	RC,0
+	cpfseq	sen3
+	bsf tmp,1
+	BTFSS	tmp,1
+	call	Straight 
+	
+	movf	RC,0
+	cpfseq	sen2
+	bsf tmp,2
+	BTFSS	tmp,2
+	call	Left
+	
+	movf	RC,0
+	cpfseq	sen4
+	bsf tmp,3
+	BTFSS	tmp,3
+	call	Right
+	
+	clrf	tmp
+	cpfseq	sen3
+	call	CW3
+	BTFSS	tmp,1
+	call	crossing
+	cpfseq	sen2
+	call	CW2
+	BTFSS	tmp,2
+	call	crossing
+	cpfseq	sen4
+	call	CW4
+	BTFSS	tmp,3
+	call	crossing
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;END_NAV;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
+	goto RCE_RCE2
+	END
