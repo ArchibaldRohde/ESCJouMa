@@ -30,13 +30,11 @@ fileobject.close()
 # set carrier frequency
 fsy = 100000
 
-
 samplefreq = 2.4e6
 fsymrate = 1.3e9 + fsy
 
 t = np.arange(0, 30000 / samplefreq, 1 / samplefreq)
-clock = 0.5*np.cos(fsy*2*np.pi*t + 37*np.pi/20) + .5 #vir DBPSK
-
+clock = 0.5 * np.cos(fsy * 2 * np.pi * t + 37 * np.pi / 20) + .5  # vir DBPSK
 
 no_zeros = []
 ons_sample_hier_ja = np.zeros([30000], dtype=complex)
@@ -110,7 +108,6 @@ for k in range(850):
         # else:
         #     m = (pll[k]-pll[k-1])
 
-
 plt.figure()
 plt.plot(np.real(raw_samples), label='raw_samples real')
 plt.plot(np.imag(raw_samples), label='raw_samples imag')
@@ -146,9 +143,7 @@ for i in range(850):
     mod_out_hier_sample.append(abs(no_zeros[i]) * np.exp(
         1j * (phi[i])))  ##############################################################################was phi
 
-
 out = []
-
 
 ##############################################################DBPSK
 for i in range(len(phi)):
@@ -162,142 +157,121 @@ for i in range(len(phi)):
 s = ''.join(out)
 print(s)
 
-
 ######################################################################################Archie se dodgy hufflepuff
 
-n=0
+n = 0
 stront = ""
-s = s[1:-1] #Huffman
-while n<(len(s)-12):
+s = s[1:-1]  # Huffman
+while n < (len(s) - 12):
 
-    if s[n:n+3] == "000":
+    if s[n:n + 3] == "000":
         stront = stront + " "
-        n = n+3
-    elif s[n:n+4] == "0011":
+        n = n + 3
+    elif s[n:n + 4] == "0011":
         stront = stront + "T"
-        n = n+4
-    elif s[n:n+6] == "001001":
+        n = n + 4
+    elif s[n:n + 6] == "001001":
         stront = stront + "C"
-        n = n+6
-    elif s[n:n+8] == "00100010":
+        n = n + 6
+    elif s[n:n + 8] == "00100010":
         stront = stront + "$"
-        n = n+8
-    elif s[n:n+7] == "0010000":
+        n = n + 8
+    elif s[n:n + 7] == "0010000":
         stront = stront + "."
-        n = n+7
-    elif s[n:n+8] == "00100011":
+        n = n + 7
+    elif s[n:n + 8] == "00100011":
         stront = stront + "^"
-        n = n+8
-    elif s[n:n+6] == "001010":
+        n = n + 8
+    elif s[n:n + 6] == "001010":
         stront = stront + "U"
-        n = n+6
-    elif s[n:n+7] == "0010111":
+        n = n + 6
+    elif s[n:n + 7] == "0010111":
         stront = stront + "V"
-        n = n+7
-    elif s[n:n+8] == "00101101":
+        n = n + 7
+    elif s[n:n + 8] == "00101101":
         stront = stront + "`"
-        n = n+8
-    elif s[n:n+8] == "00101100":
+        n = n + 8
+    elif s[n:n + 8] == "00101100":
         stront = stront + ","
-        n = n+8
-    elif s[n:n+6] == "010000":
+        n = n + 8
+    elif s[n:n + 6] == "010000":
         stront = stront + "M"
-        n = n+6
-    elif s[n:n+6] == "010001":
+        n = n + 6
+    elif s[n:n + 6] == "010001":
         stront = stront + "W"
-        n = n+6
-    elif s[n:n+5] == "01001":
+        n = n + 6
+    elif s[n:n + 5] == "01001":
         stront = stront + "D"
-        n = n+5
-    elif s[n:n+6] == "010100":
+        n = n + 5
+    elif s[n:n + 6] == "010100":
         stront = stront + "F"
-        n = n+6
-    elif s[n:n+6] == "010101":
+        n = n + 6
+    elif s[n:n + 6] == "010101":
         stront = stront + "G"
-        n = n+6
-    elif s[n:n+5] == "01011":
+        n = n + 6
+    elif s[n:n + 5] == "01011":
         stront = stront + "L"
-        n = n+5
-    elif s[n:n+4] == "0110":
+        n = n + 5
+    elif s[n:n + 4] == "0110":
         stront = stront + "A"
-        n = n+4
-    elif s[n:n+4] == "0111":
+        n = n + 4
+    elif s[n:n + 4] == "0111":
         stront = stront + "O"
-        n = n+4
-    elif s[n:n+6] == "100000":
+        n = n + 4
+    elif s[n:n + 6] == "100000":
         stront = stront + "Y"
-        n = n+6
-    elif s[n:n+6] == "100001":
+        n = n + 6
+    elif s[n:n + 6] == "100001":
         stront = stront + "P"
-        n = n+6
-    elif s[n:n+9] == "100010000":
+        n = n + 6
+    elif s[n:n + 9] == "100010000":
         stront = stront + "``"
-        n = n+9
-    elif s[n:n+11] == "10001000100":
+        n = n + 9
+    elif s[n:n + 11] == "10001000100":
         stront = stront + "?"
-        n = n+11
-    elif s[n:n+11] == "10001000101":
+        n = n + 11
+    elif s[n:n + 11] == "10001000101":
         stront = stront + "Z"
-        n = n+11
-    elif s[n:n+10] == "1000100011":
+        n = n + 11
+    elif s[n:n + 10] == "1000100011":
         stront = stront + "Q"
-        n = n+10
-    elif s[n:n+9] == "100010010":
+        n = n + 10
+    elif s[n:n + 9] == "100010010":
         stront = stront + "J"
-        n = n+9
-    elif s[n:n+9] == "100010011":
+        n = n + 9
+    elif s[n:n + 9] == "100010011":
         stront = stront + "X"
-        n = n+9
-    elif s[n:n+7] == "1000101":
+        n = n + 9
+    elif s[n:n + 7] == "1000101":
         stront = stront + "K"
-        n = n+7
-    elif s[n:n+6] == "100011":
+        n = n + 7
+    elif s[n:n + 6] == "100011":
         stront = stront + "B"
-        n = n+6
-    elif s[n:n+4] == "1001":
+        n = n + 6
+    elif s[n:n + 4] == "1001":
         stront = stront + "I"
-        n = n+4
-    elif s[n:n+4] == "1010":
+        n = n + 4
+    elif s[n:n + 4] == "1010":
         stront = stront + "N"
-        n = n+4
-    elif s[n:n+4] == "1011":
+        n = n + 4
+    elif s[n:n + 4] == "1011":
         stront = stront + "S"
-        n = n+4
-    elif s[n:n+3] == "110":
+        n = n + 4
+    elif s[n:n + 3] == "110":
         stront = stront + "E"
-        n = n+3
-    elif s[n:n+4] == "1110":
+        n = n + 3
+    elif s[n:n + 4] == "1110":
         stront = stront + "H"
-        n = n+4
-    elif s[n:n+4] == "1111":
+        n = n + 4
+    elif s[n:n + 4] == "1111":
         stront = stront + "R"
-        n = n+4
+        n = n + 4
     else:
-        n = n+1
+        n = n + 1
         print("Fok")
-
 
 print(stront)
 ######################################################################################Archie se dodgy hufflepuff
-
-
-#jas = s[2:-3] #DBPSK
-jas = s
-bitstr = ''
-joke = ''
-desi = 0
-for i in range(60):
-    bitstr = jas[0:8]
-    print(bitstr)
-    desi = int(bitstr, 2)
-    joke = joke + (chr(desi))
-    # print(joke)
-    jas = jas[8:]
-
-# b = bytes((s[8*i+jas:8*i+8+jas]), 'utf-8')
-# print(binascii.b2a_uu(b))  # out[2:-4]))
-
-print(joke)
 
 
 plt.figure()
@@ -310,14 +284,10 @@ plt.xlabel('real')
 plt.ylabel('imag')
 plt.grid(True)
 
-
 plt.show()
-
-
-
 
 # https://mothereff.in/binary-ascii
 # https://www.rapidtables.com/code/text/ascii-table.html
 
 
-#Veeresh Taranalli, "CommPy: Digital Communication with Python, version 0.3.0. Available at https://github.com/veeresht/CommPy", 2015.
+# Veeresh Taranalli, "CommPy: Digital Communication with Python, version 0.3.0. Available at https://github.com/veeresht/CommPy", 2015.

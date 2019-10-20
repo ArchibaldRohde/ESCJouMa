@@ -31,35 +31,33 @@ fileobject.close()
 # set carrier frequency
 fsy = 100000
 samplefreq = 2.4e6
-fsymrate = 1.3e9 #+ fsy
+fsymrate = 1.3e9  # + fsy
 
-time, h_t = rrcosfilter(30000, 0.5, 8/(samplefreq), samplefreq)
-#h_t = h_t/np.max(h_t)
-#raw_samples = raw_samples/np.max(raw_samples)
+time, h_t = rrcosfilter(30000, 0.5, 8 / fsy, fsy)
+# h_t = h_t/np.max(h_t)
+# raw_samples = raw_samples/np.max(raw_samples)
 jaaaa = signal.fftconvolve((raw_samples), h_t, mode='full')
-#rawsquare = np.square(raw_samples)
-#mag = np.sqrt(jaaaa.real()**2 + jaaaa.imag()**2)
-jaaaa = jaaaa[15000:45000]#/np.max(jaaaa)
+# rawsquare = np.square(raw_samples)
+# mag = np.sqrt(jaaaa.real()**2 + jaaaa.imag()**2)
+jaaaa = jaaaa[15000:45000]  # /np.max(jaaaa)
 
 t = np.arange(0, 30000 / samplefreq, 1 / samplefreq)
-clock = 0.5*np.cos(fsy*2*np.pi*t + 22*np.pi/10) + .5 #vir DBPSK
+clock = 0.5 * np.cos(fsy * 2 * np.pi * t + 22 * np.pi / 10) + .5  # vir DBPSK
 
 print(t[0:10])
 print(time[0:10])
 
 plt.figure()
-plt.plot(jaaaa, label='filter')
+plt.plot(np.real(jaaaa), label='filter')
 plt.plot(np.real(raw_samples), label='raw_samples real')
 
-
-#plt.plot(ons_sample_hier_ja, 'go', label='sampling instances')
+# plt.plot(ons_sample_hier_ja, 'go', label='sampling instances')
 plt.legend()
 plt.yscale('linear')
 plt.title('filter')
 plt.xlabel('time or samples')
 plt.ylabel('not phase')
 plt.grid(True)
-plt.show()
 
 no_zeros = []
 ons_sample_hier_ja = np.zeros([30000], dtype=complex)
@@ -73,15 +71,13 @@ for i in range(len(ons_sample_hier_ja)):
         if flaggie:
             no_zeros.append(jaaaa[i])
 
-
-
 t1 = np.arange(0, len(no_zeros) / samplefreq, 1 / samplefreq)
 
 phase_ons_is_klaar_gesamples = np.unwrap(np.angle(no_zeros)) * -1
 # freq_ons_is_klaar_gesamples = np.gradient(phase_ons_is_klaar_gesamples)
 mooi_IQ = []
 
-plt.show()
+# plt.show()
 
 m = (phase_ons_is_klaar_gesamples[8] - phase_ons_is_klaar_gesamples[3]) / 6
 phi = []
@@ -137,12 +133,11 @@ for k in range(850):
         # else:
         #     m = (pll[k]-pll[k-1])
 
-
 plt.figure()
 plt.plot(np.real(jaaaa), label='jaaaa real')
-#plt.plot(np.real(rawsquare), label='raw ja')
-#plt.plot(clock, label='clock')
-#plt.plot(ons_sample_hier_ja, 'go', label='sampling instances')
+# plt.plot(np.real(rawsquare), label='raw ja')
+# plt.plot(clock, label='clock')
+# plt.plot(ons_sample_hier_ja, 'go', label='sampling instances')
 # plt.plot(no_zeros, t, 'bo', label='ons_sample_hier_ja')
 plt.legend()
 plt.yscale('linear')
@@ -153,9 +148,9 @@ plt.grid(True)
 
 plt.figure()
 plt.plot(np.real(raw_samples), label='raw real')
-#plt.plot(np.real(rawsquare), label='raw ja')
-#plt.plot(clock, label='clock')
-#plt.plot(ons_sample_hier_ja, 'go', label='sampling instances')
+# plt.plot(np.real(rawsquare), label='raw ja')
+# plt.plot(clock, label='clock')
+# plt.plot(ons_sample_hier_ja, 'go', label='sampling instances')
 # plt.plot(no_zeros, t, 'bo', label='ons_sample_hier_ja')
 plt.legend()
 plt.yscale('linear')
@@ -188,14 +183,12 @@ for i in range(850):
     mod_out_hier_sample.append(abs(no_zeros[i]) * np.exp(
         1j * (phi[i])))  ##############################################################################was phi
 
-
 out = []
-
 
 ##############################################################DBPSK
 for i in range(len(phi)):
 
-    if (phi[i] > 2) or (phi[i] < -2):
+    if (phi[i] > 1) or (phi[i] < -2):
         out.append('1')
     else:
         out.append('0')
@@ -204,16 +197,13 @@ for i in range(len(phi)):
 s = ''.join(out)
 print(s)
 
-
-
-
-
-#jas = s[2:-3] #DBPSK
-jas = s
+# jas = s[2:-3] #DBPSK
+jas = s[20:-1]
+print(jas)
 bitstr = ''
-joke = ''
+joke = ""
 desi = 0
-for i in range(60):
+for i in range(40):
     bitstr = jas[0:8]
     print(bitstr)
     desi = int(bitstr, 2)
@@ -226,7 +216,6 @@ for i in range(60):
 
 print(joke)
 
-
 plt.figure()
 plt.plot(np.real(no_zeros), np.imag(no_zeros), 'bo', label='Sample IQ')
 plt.plot(np.real(mod_out_hier_sample), np.imag(mod_out_hier_sample), 'ro', label='Sync IQ')
@@ -237,14 +226,10 @@ plt.xlabel('real')
 plt.ylabel('imag')
 plt.grid(True)
 
-
 plt.show()
-
-
-
 
 # https://mothereff.in/binary-ascii
 # https://www.rapidtables.com/code/text/ascii-table.html
 
 
-#Veeresh Taranalli, "CommPy: Digital Communication with Python, version 0.3.0. Available at https://github.com/veeresht/CommPy", 2015.
+# Veeresh Taranalli, "CommPy: Digital Communication with Python, version 0.3.0. Available at https://github.com/veeresht/CommPy", 2015.
